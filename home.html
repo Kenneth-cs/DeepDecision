@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepDecision - 医疗循证平台</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/framer-motion@10/dist/framer-motion.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #f8fafc;
+        }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(230, 230, 230, 0.4);
+        }
+        .animate-pulse-slow {
+            animation: pulse-slow 3s ease-in-out infinite;
+        }
+        @keyframes pulse-slow {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+        const { motion } = window.Motion || { motion: { div: 'div', section: 'section' } };
+
+        function HomePage() {
+            const [query, setQuery] = useState("");
+            const [isSearching, setIsSearching] = useState(false);
+
+            function handleSearch(e) {
+                e.preventDefault();
+                if (!query.trim()) return;
+                
+                setIsSearching(true);
+                // 模拟跳转到搜索结果页
+                setTimeout(() => {
+                    window.location.href = `index.html?q=${encodeURIComponent(query)}`;
+                }, 800);
+            }
+
+            function handleQuickSearch(searchTerm) {
+                setQuery(searchTerm);
+                setIsSearching(true);
+                setTimeout(() => {
+                    window.location.href = `index.html?q=${encodeURIComponent(searchTerm)}`;
+                }, 800);
+            }
+
+            return (
+                <div className="min-h-screen bg-surface-50 flex flex-col items-center justify-center px-6">
+                    {/* 头部Logo和标题 */}
+                    <motion.div 
+                        initial={{ opacity: 0, y: -50 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.8 }}
+                        className="text-center mb-12 mt-16"
+                    >
+                        <div className="flex items-center justify-center gap-4 mb-6">
+                            <div className="w-16 h-16 bg-sky-100 rounded-2xl flex items-center justify-center text-sky-600 font-bold text-2xl">
+                                DD
+                            </div>
+                            <div className="text-left">
+                                <h1 className="text-5xl font-bold text-slate-900 mb-2">DeepDecision</h1>
+                                <p className="text-xl text-slate-700">医疗循证智能决策平台</p>
+                            </div>
+                        </div>
+                        <p className="text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
+                            基于京东AutoBots智能体技术，为医疗专业人员提供快速、准确、可追溯的循证医学决策支持
+                        </p>
+                    </motion.div>
+
+                    {/* 主搜索区域 */}
+                    <motion.div 
+                        initial={{ opacity: 0, y: 50 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.8, delay: 0.3 }}
+                        className="w-full max-w-4xl mb-12"
+                    >
+                        <form onSubmit={handleSearch} className="relative">
+                            <div className="glass-effect rounded-2xl p-8 shadow-2xl">
+                                <div className="flex items-center gap-4">
+                                    <div className="flex-1 relative">
+                                        <input
+                                            value={query}
+                                            onChange={(e) => setQuery(e.target.value)}
+                                            placeholder="输入您的临床问题或关键词，如：糖尿病足治疗方案、心衰患者远程随访..."
+                                            className="w-full bg-white border border-sky-200 rounded-xl px-6 py-4 text-lg text-slate-900 focus:outline-none focus:ring-4 focus:ring-sky-300 placeholder-gray-400 shadow-sm"
+                                            disabled={isSearching}
+                                        />
+                                        {isSearching && (
+                                            <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
+                                                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <button
+                                        type="submit"
+                                        disabled={isSearching || !query.trim()}
+                                        className="bg-sky-600 hover:bg-sky-700 text-white font-semibold px-8 py-4 rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                                    >
+                                        {isSearching ? '搜索中...' : '智能搜索'}
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </motion.div>
+
+                    {/* 快速搜索场景 */}
+                    <motion.div 
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.8, delay: 0.6 }}
+                        className="w-full max-w-4xl mb-12"
+                    >
+                        <div className="text-center mb-6">
+                            <h3 className="text-xl font-semibold text-black mb-2">热门搜索场景</h3>
+                            <p className="text-black text-opacity-70">点击快速开始您的循证查询</p>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {[
+                                { title: "心衰远程随访", desc: "远程医疗降低再入院率", query: "心衰 远程随访 再入院" },
+                                { title: "抗生素短程治疗", desc: "尿路感染治疗方案", query: "短程 抗生素 尿路感染" },
+                                { title: "SGLT2抑制剂", desc: "慢性肾病治疗", query: "SGLT2 慢性肾病 治疗" }
+                            ].map((item, index) => (
+                                <button
+                                    key={index}
+                                    onClick={() => handleQuickSearch(item.query)}
+                                    className="glass-effect rounded-xl p-6 text-left hover:bg-sky-50 transition-all duration-300 group border border-sky-100 shadow-sm"
+                                    disabled={isSearching}
+                                >
+                                    <h4 className="text-sky-700 font-semibold text-lg mb-2 group-hover:text-sky-900">{item.title}</h4>
+                                    <p className="text-slate-600 text-sm group-hover:text-slate-900">{item.desc}</p>
+                                    <div className="mt-3 text-slate-400 text-xs group-hover:text-sky-600">点击搜索 →</div>
+                                </button>
+                            ))}
+                        </div>
+                    </motion.div>
+
+                    {/* 产品亮点 */}
+                    <motion.div 
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.8, delay: 0.9 }}
+                        className="w-full max-w-6xl"
+                    >
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                            {[
+                                { icon: "🤖", title: "AI智能体", desc: "基于AutoBots技术的智能问答" },
+                                { icon: "⚡", title: "秒级响应", desc: "10秒内获得循证医学结果" },
+                                { icon: "🔍", title: "精准检索", desc: "场景化搜索，结果更相关" },
+                                { icon: "🛡️", title: "安全可靠", desc: "医疗级安全保障和审计" }
+                            ].map((feature, index) => (
+                                <div key={index} className="text-center">
+                                    <div className="text-4xl mb-3 animate-pulse-slow" style={{animationDelay: `${index * 0.5}s`}}>{feature.icon}</div>
+                                    <h4 className="text-sky-700 font-semibold text-lg mb-2">{feature.title}</h4>
+                                    <p className="text-slate-600 text-sm">{feature.desc}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </motion.div>
+
+                    {/* 底部信息 */}
+                    <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.8, delay: 1.2 }}
+                        className="mt-16 text-center"
+                    >
+                        <div className="flex items-center justify-center gap-6 text-white text-opacity-60 text-sm">
+                            <span>© 2024 DeepDecision</span>
+                            <span>•</span>
+                            <span>医疗循证决策平台</span>
+                            <span>•</span>
+                            <span>Powered by AutoBots</span>
+                        </div>
+                        
+                        <div className="mt-4 glass-effect rounded-lg px-4 py-2 inline-block">
+                            <div className="text-gray-500 text-xs">
+                                ⚠️ 本平台提供的医疗建议仅供参考，请结合临床实际情况进行判断
+                            </div>
+                        </div>
+                        {/* 底部演示说明已移除 */}
+                    </motion.div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<HomePage />, document.getElementById('root'));
+    </script>
+</body>
+</html>

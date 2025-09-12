@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepDecision - 医疗循证平台</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/framer-motion@10/dist/framer-motion.js"></script>
+    <script src="https://unpkg.com/recharts@2.8.0/umd/Recharts.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .bg-surface-50 {
+            background-color: #f8fafc;
+        }
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: .5;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const { motion } = window.Motion || { motion: { div: 'div', article: 'article' } };
+        const { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } = window.Recharts || {};
+
+        // Mock dataset simulating evidence results
+        const MOCK_DATA = [
+            {
+                id: "EVID-001",
+                title: "阿司匹林降低急性冠脉综合征患者30天MACE事件",
+                summary: "随机对照试验的荟萃分析显示，阿司匹林可显著降低急性冠脉综合征患者30天内主要不良心血管事件(MACE)的发生率。",
+                journal: "NEJM",
+                date: "2024-11-10",
+                level: "Level I",
+                readTime: "45s",
+                impact: [{ name: "MACE", value: 28 }, { name: "出血", value: 8 }],
+                doi: "10.1056/NEJMoa2024",
+            },
+            {
+                id: "EVID-002",
+                title: "短程抗生素治疗单纯性尿路感染非劣效性研究",
+                summary: "多中心随机对照试验发现，3天疗程与7天疗程在单纯性尿路感染临床治愈率方面具有非劣效性。",
+                journal: "JAMA",
+                date: "2025-02-21",
+                level: "Level II",
+                readTime: "35s",
+                impact: [{ name: "治愈率", value: 92 }, { name: "复发率", value: 5 }],
+                doi: "10.1001/jama.2025",
+            },
+            {
+                id: "EVID-003",
+                title: "SGLT2抑制剂改善慢性肾病患者肾脏结局",
+                summary: "汇总分析表明，SGLT2抑制剂能显著延缓慢性肾病患者eGFR下降速度，降低终末期肾病风险。",
+                journal: "Lancet",
+                date: "2024-06-03",
+                level: "Level I",
+                readTime: "55s",
+                impact: [{ name: "eGFR改善", value: 10 }, { name: "ESRD风险", value: 2 }],
+                doi: "10.1016/S0140-6736(24)00001-2",
+            },
+            {
+                id: "EVID-004",
+                title: "低剂量糖皮质激素加速重症COVID-19患者康复",
+                summary: "观察性研究提示有益效果；随机证据结果不一——需考虑患者选择。",
+                journal: "BMJ",
+                date: "2023-12-15",
+                level: "Level III",
+                readTime: "1min",
+                impact: [{ name: "康复时间", value: 40 }, { name: "死亡率", value: 12 }],
+                doi: "10.1136/bmj-2023-001234",
+            },
+            {
+                id: "EVID-005",
+                title: "远程医疗随访降低心衰患者再入院率",
+                summary: "整群随机对照试验显示，结构化远程医疗随访可降低90天再入院率。",
+                journal: "Circulation",
+                date: "2024-09-01",
+                level: "Level II",
+                readTime: "30s",
+                impact: [{ name: "再入院", value: 18 }, { name: "门诊", value: 22 }],
+                doi: "10.1161/CIRCULATIONAHA.124.000000",
+            },
+        ];
+
+        function DeepDecisionApp() {
+            const [query, setQuery] = useState("");
+            const [results, setResults] = useState(MOCK_DATA);
+            const [loading, setLoading] = useState(false);
+            const [filterLevel, setFilterLevel] = useState("All");
+            const [view, setView] = useState("cards"); // cards | list | visual
+            const [selected, setSelected] = useState(null);
+
+            useEffect(() => {
+                // initial load mimic
+                setLoading(true);
+                const t = setTimeout(() => {
+                    setResults(MOCK_DATA);
+                    setLoading(false);
+                }, 500);
+                return () => clearTimeout(t);
+            }, []);
+
+            function handleSearch(e) {
+                e.preventDefault();
+                setLoading(true);
+                setSelected(null);
+                // fake "fast" search (simulate <10s)
+                setTimeout(() => {
+                    const q = query.trim().toLowerCase();
+                    const filtered = MOCK_DATA.filter((it) => {
+                        if (filterLevel !== "All" && it.level !== filterLevel) return false;
+                        if (!q) return true;
+                        return (
+                            it.title.toLowerCase().includes(q) ||
+                            it.summary.toLowerCase().includes(q) ||
+                            it.journal.toLowerCase().includes(q)
+                        );
+                    });
+                    setResults(filtered);
+                    setLoading(false);
+                }, 400);
+            }
+
+            function handleQuickSearch(searchTerm) {
+                setQuery(searchTerm);
+                const event = { preventDefault: () => {} };
+                handleSearch(event);
+            }
+
+            return (
+                <div className="min-h-screen bg-surface-50 text-slate-900 p-6">
+                    <header className="max-w-6xl mx-auto">
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-gradient-to-br from-sky-400 to-indigo-600 rounded-lg flex items-center justify-center text-white font-semibold">
+                                    DD
+                                </div>
+                                <div>
+                                    <h1 className="text-2xl font-semibold">DeepDecision — 医疗循证平台</h1>
+                                    <p className="text-sm text-slate-500">场景化AI决策 · 快速 · 可追溯（基于AutoBots智能体）</p>
+                                </div>
+                            </div>
+                            <nav className="space-x-4 text-sm text-slate-600">
+                                <button className="px-3 py-1 rounded-md hover:bg-slate-100">我的收藏</button>
+                                <button className="px-3 py-1 rounded-md hover:bg-slate-100">工作流</button>
+                                <button className="px-3 py-1 rounded-md hover:bg-slate-100">设置</button>
+                            </nav>
+                        </div>
+
+                        <form onSubmit={handleSearch} className="flex gap-3 items-center">
+                            <input
+                                value={query}
+                                onChange={(e) => setQuery(e.target.value)}
+                                placeholder="输入临床问题或关键词（例：糖尿病足 治疗方案）"
+                                className="flex-1 bg-white border border-slate-200 shadow-sm rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-sky-300"
+                            />
+                            <button
+                                type="submit"
+                                className="bg-sky-600 text-white px-4 py-2 rounded-lg hover:bg-sky-700"
+                            >
+                                智能搜索
+                            </button>
+                        </form>
+
+                        <div className="mt-4 flex gap-3 text-sm">
+                            <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-slate-100 shadow-sm">
+                                <span className="text-slate-500">快速场景：</span>
+                                <button
+                                    onClick={() => handleQuickSearch("心衰 远程随访")}
+                                    className="text-sky-600 hover:underline"
+                                >
+                                    心衰随访
+                                </button>
+                                <button
+                                    onClick={() => handleQuickSearch("短程 抗生素 尿路感染")}
+                                    className="text-sky-600 hover:underline"
+                                >
+                                    尿路感染
+                                </button>
+                                <button
+                                    onClick={() => handleQuickSearch("SGLT2 慢性肾病")}
+                                    className="text-sky-600 hover:underline"
+                                >
+                                    肾病治疗
+                                </button>
+                            </div>
+
+                            <div className="flex items-center gap-1 text-slate-500">
+                                <span>证据等级：</span>
+                                <select
+                                    value={filterLevel}
+                                    onChange={(e) => setFilterLevel(e.target.value)}
+                                    className="bg-white border border-slate-200 rounded px-2 py-1"
+                                >
+                                    <option>All</option>
+                                    <option>Level I</option>
+                                    <option>Level II</option>
+                                    <option>Level III</option>
+                                </select>
+                            </div>
+
+                            <div className="ml-auto flex items-center gap-2">
+                                <span className="text-slate-500">视图：</span>
+                                <button onClick={() => setView("cards")} className={`px-2 py-1 rounded ${view === "cards" ? "bg-sky-600 text-white" : "bg-white"}`}>卡片</button>
+                                <button onClick={() => setView("list")} className={`px-2 py-1 rounded ${view === "list" ? "bg-sky-600 text-white" : "bg-white"}`}>列表</button>
+                                <button onClick={() => setView("visual")} className={`px-2 py-1 rounded ${view === "visual" ? "bg-sky-600 text-white" : "bg-white"}`}>可视化</button>
+                            </div>
+                        </div>
+                    </header>
+
+                    <main className="max-w-6xl mx-auto mt-6 grid grid-cols-12 gap-6">
+                        {/* Sidebar */}
+                        <aside className="col-span-3 bg-white rounded-lg p-4 shadow-sm h-fit">
+                            <h3 className="font-medium mb-3">筛选 & 场景</h3>
+                            <div className="space-y-3 text-sm text-slate-600">
+                                <div>
+                                    <div className="text-xs text-slate-400">专业领域</div>
+                                    <div className="mt-2 flex flex-wrap gap-2">
+                                        {['心血管','感染','肾脏','呼吸','内分泌'].map((t)=> (
+                                            <button key={t} className="px-2 py-1 bg-slate-50 rounded text-slate-600 text-sm hover:bg-sky-50">{t}</button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div className="text-xs text-slate-400">时间范围</div>
+                                    <div className="mt-2 flex gap-2">
+                                        <button className="px-2 py-1 bg-slate-50 rounded hover:bg-sky-50">一年内</button>
+                                        <button className="px-2 py-1 bg-slate-50 rounded hover:bg-sky-50">三年内</button>
+                                        <button className="px-2 py-1 bg-slate-50 rounded hover:bg-sky-50">全部</button>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div className="text-xs text-slate-400">AI工具</div>
+                                    <div className="mt-2 flex flex-col gap-2">
+                                        <button className="px-3 py-2 rounded bg-sky-50 text-sky-700 hover:bg-sky-100">生成诊疗建议</button>
+                                        <button className="px-3 py-2 rounded bg-sky-50 text-sky-700 hover:bg-sky-100">生成患者材料</button>
+                                        <button className="px-3 py-2 rounded bg-sky-50 text-sky-700 hover:bg-sky-100">安全性检查</button>
+                                    </div>
+                                </div>
+
+                                <div className="mt-4 p-3 bg-amber-50 rounded-lg">
+                                    <div className="text-xs text-amber-700 font-medium">⚠️ 安全提醒</div>
+                                    <div className="text-xs text-amber-600 mt-1">基于AutoBots智能体的医疗建议仅供参考，请结合临床实际情况判断。</div>
+                                </div>
+                            </div>
+                        </aside>
+
+                        {/* Results area */}
+                        <section className="col-span-9">
+                            <div className="bg-white rounded-lg p-4 shadow-sm min-h-[300px]">
+                                {loading ? (
+                                    <div className="flex items-center justify-center py-20">
+                                        <div className="animate-pulse text-slate-400">AutoBots智能体分析中…</div>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div>
+                                                <div className="text-sm text-slate-500">显示 {results.length} 条循证结果</div>
+                                                <h2 className="text-xl font-semibold">智能检索结果</h2>
+                                            </div>
+                                        </div>
+
+                                        {view === 'visual' && ResponsiveContainer ? (
+                                            <div className="h-64">
+                                                <ResponsiveContainer width="100%" height={250}>
+                                                    <BarChart data={results.map(r => ({ name: r.journal, value: r.impact.reduce((s,i)=>s+i.value,0) }))}>
+                                                        <XAxis dataKey="name" />
+                                                        <YAxis />
+                                                        <Tooltip />
+                                                        <Bar dataKey="value" fill="#0ea5e9" />
+                                                    </BarChart>
+                                                </ResponsiveContainer>
+                                            </div>
+                                        ) : (
+                                            <div className={view === 'cards' ? 'grid grid-cols-2 gap-4' : 'space-y-3'}>
+                                                {results.map((r) => (
+                                                    <article key={r.id} className="bg-white border border-slate-100 p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer" onClick={() => setSelected(r)}>
+                                                        <div className="flex justify-between items-start">
+                                                            <div className="flex-1">
+                                                                <h3 className="font-medium text-slate-900">{r.title}</h3>
+                                                                <p className="text-sm text-slate-600 mt-1 line-clamp-2">{r.summary}</p>
+                                                                <div className="mt-3 flex items-center gap-3 text-xs text-slate-500">
+                                                                    <span className={`px-2 py-1 rounded ${
+                                                                        r.level === 'Level I' ? 'bg-green-100 text-green-700' :
+                                                                        r.level === 'Level II' ? 'bg-blue-100 text-blue-700' :
+                                                                        'bg-yellow-100 text-yellow-700'
+                                                                    }`}>{r.level}</span>
+                                                                    <span>{r.journal}</span>
+                                                                    <span>{r.date}</span>
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="ml-4 flex flex-col items-end gap-2">
+                                                                <div className="text-xs text-slate-400">阅读约 {r.readTime}</div>
+                                                                <div className="flex gap-2">
+                                                                    <button onClick={(e) => { e.stopPropagation(); setSelected(r); }} className="px-3 py-1 rounded bg-sky-600 text-white text-sm hover:bg-sky-700">查看</button>
+                                                                    <button onClick={(e) => e.stopPropagation()} className="px-3 py-1 rounded border text-sm hover:bg-slate-50">⋯</button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </article>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </>
+                                )}
+                            </div>
+                        </section>
+                    </main>
+
+                    {/* Slide-over detail */}
+                    {selected && (
+                        <div className="fixed inset-0 z-50 flex" style={{backgroundColor: 'rgba(0,0,0,0.5)'}}>
+                            <div className="flex-1" onClick={() => setSelected(null)} />
+                            <div className="w-[720px] bg-white p-6 shadow-2xl overflow-auto">
+                                <div className="flex items-start justify-between">
+                                    <div>
+                                        <h2 className="text-2xl font-semibold">{selected.title}</h2>
+                                        <div className="text-sm text-slate-500 mt-1">{selected.journal} • {selected.date} • {selected.level}</div>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <button onClick={() => { alert('收藏功能开发中'); }} className="px-3 py-1 rounded bg-amber-50 text-amber-700 hover:bg-amber-100">收藏</button>
+                                        <button onClick={() => setSelected(null)} className="px-3 py-1 rounded bg-slate-100 hover:bg-slate-200">关闭</button>
+                                    </div>
+                                </div>
+
+                                <div className="mt-6 grid grid-cols-2 gap-6">
+                                    <div>
+                                        <h3 className="font-medium mb-2">核心摘要</h3>
+                                        <p className="text-slate-700">{selected.summary}</p>
+
+                                        <div className="mt-4">
+                                            <h4 className="text-sm text-slate-500 mb-2">证据链</h4>
+                                            <ul className="space-y-2 text-sm">
+                                                <li className="p-3 bg-slate-50 rounded">来源：{selected.journal} • DOI: <span className="text-sky-600">{selected.doi}</span></li>
+                                                <li className="p-3 bg-slate-50 rounded">证据等级：{selected.level}</li>
+                                                <li className="p-3 bg-green-50 rounded text-green-700">AutoBots验证：已通过安全性检查</li>
+                                                <li className="p-3 bg-blue-50 rounded text-blue-700">建议：结合临床情况个体化决策</li>
+                                            </ul>
+                                        </div>
+
+                                        <div className="mt-4">
+                                            <button onClick={() => alert('患者材料生成功能开发中')} className="px-4 py-2 rounded bg-sky-600 text-white hover:bg-sky-700">生成患者说明</button>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <h3 className="font-medium mb-2">数据可视化</h3>
+                                        {ResponsiveContainer ? (
+                                            <div className="h-44">
+                                                <ResponsiveContainer width="100%" height={180}>
+                                                    <BarChart data={selected.impact}>
+                                                        <XAxis dataKey="name" />
+                                                        <YAxis />
+                                                        <Tooltip />
+                                                        <Bar dataKey="value" fill="#0ea5e9" />
+                                                    </BarChart>
+                                                </ResponsiveContainer>
+                                            </div>
+                                        ) : (
+                                            <div className="h-44 bg-slate-100 rounded flex items-center justify-center text-slate-500">
+                                                图表加载中...
+                                            </div>
+                                        )}
+
+                                        <div className="mt-4">
+                                            <h4 className="text-sm text-slate-500 mb-2">相关操作</h4>
+                                            <div className="flex flex-col gap-2">
+                                                <button onClick={() => alert('复制引用功能开发中')} className="px-3 py-2 rounded bg-sky-50 text-sky-700 hover:bg-sky-100">复制引用</button>
+                                                <button onClick={() => alert('分享功能开发中')} className="px-3 py-2 rounded bg-sky-50 text-sky-700 hover:bg-sky-100">分享到病例讨论</button>
+                                                <button onClick={() => alert('导出功能开发中')} className="px-3 py-2 rounded bg-sky-50 text-sky-700 hover:bg-sky-100">导出PDF</button>
+                                                <button onClick={() => alert('反馈功能开发中')} className="px-3 py-2 rounded bg-red-50 text-red-700 hover:bg-red-100">报告问题</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                                    <div className="text-sm text-blue-700">
+                                        <strong>AutoBots智能分析：</strong> 该证据已通过多维度安全校验，包括药物相互作用检查、剂量合理性评估和跨专科协作建议。建议结合患者具体情况进行个体化决策。
+                                    </div>
+                                </div>
+
+                                <div className="mt-4 text-sm text-slate-500">注：该原型集成京东AutoBots智能体能力，提供AI驱动的医疗循证决策支持。</div>
+                            </div>
+                        </div>
+                    )}
+
+                    <footer className="max-w-6xl mx-auto mt-8 text-xs text-slate-400 text-center">
+                        © DeepDecision 医疗循证平台 · 基于京东AutoBots智能体 · 场景化AI决策支持
+                    </footer>
+                </div>
+            );
+        }
+
+        // Render the app
+        ReactDOM.render(<DeepDecisionApp />, document.getElementById('root'));
+    </script>
+</body>
+</html>
