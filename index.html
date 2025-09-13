@@ -25,6 +25,19 @@
                 opacity: .5;
             }
         }
+        .animate-fade-in {
+            animation: fadeIn 0.8s ease-in-out;
+        }
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
     </style>
 </head>
 <body>
@@ -128,7 +141,7 @@
                     },
                     {
                         id: "EYE-002",
-                        title: "PRK术后20年角膜生物力学变化的前瞻性研究",
+                        title: "三种不同激光角膜屈光手术对体内角膜生物力学的影响",
                         summary: "评估PRK手术对角膜生物力学的长期影响，证实其对角膜结构的最小干扰。",
                         journal: "Cornea",
                         date: "2024-01-20",
@@ -140,7 +153,7 @@
                     },
                     {
                         id: "EYE-003",
-                        title: "LASIK与SMILE术后角膜扩张风险的Meta分析",
+                        title: "准分子激光屈光性角膜切削术随机前瞻性临床试验的二十年随访",
                         summary: "系统分析比较LASIK和SMILE术后角膜扩张的发生率和风险因素。",
                         journal: "Ophthalmology",
                         date: "2024-02-10",
@@ -152,47 +165,38 @@
                     }
                 ]
             },
-            "头疼怎么治": {
-                aiSummary: `头痛的治疗需遵循个体化原则，结合病因与症状特点进行分层干预：
+            "肿瘤患者可以饮酒吗？": {
+                aiSummary: `** 肿瘤患者不建议饮酒。** 
+肿瘤患者饮酒建议及相关风险：根据**世界卫生组织（WHO）**、**国际癌症研究机构（IARC）** 以及**美国癌症学会（American Cancer Society）** 的最新共识，酒精被确认为**人类致癌物（Group 1）**，与多种癌症（如口腔、咽喉、喉、食管、肝脏、结直肠和乳腺癌）发生密切相关，且“**没有安全的饮酒量**”。
+对于肿瘤患者，饮酒不仅增加复发和第二原发癌的风险，还可能影响治疗效果、增加并发症和死亡率。[1-4]
 
-**1. 急性发作期治疗**
-• 一线药物选择：
-  - 首选对乙酰氨基酚（≤2 g/d）、布洛芬（400-800 mg/d）或萘普生（375-550 mg/d），有效率约60%-75%（S级证据）
-  - 咖啡因复合制剂（如阿司匹林+咖啡因）作为二线选择，但需严格限制使用频次（每月≤9天）以防药物滥用性头痛（MOH）
+美国癌症学会建议：
+- 肿瘤患者最好**完全避免饮酒**；
+- 如确实选择饮酒，女性每日不超过1杯，男性不超过2杯（1杯约含14克乙醇）。
 
-**2. 特殊类型头痛处理**
-• 低颅压性头痛：
-  - 硬膜外自体血贴片治疗有效率可达83%（20ml注射量），对常规补液无效者推荐使用（S级证据）
-• 经行头痛（中医）：
-  - 采用分阶段治疗：经前疏肝（柴胡疏肝散），经期活血（加三七粉），经后固肾（六味地黄丸）
+即使是少量饮酒也会增加某些癌症风险，**所有类型酒精饮品（啤酒、葡萄酒、烈酒）风险相同**。研究显示，戒酒或减少饮酒可降低癌症风险，但重度饮酒者即使减少饮酒，风险仍高于长期不饮酒者。[2-3][5]
 
-**3. 预防性治疗原则**
-• 药物干预阈值：
-  - 每月头痛发作≥4次或累计天数≥8天时启用预防治疗（S级证据）
-• MOH防治策略：
-  - 强制药物假期（至少2月）+认知行为治疗，可使1年复发率降低至40%以下
+值得注意的是，尽管风险明确，仍有大量肿瘤患者持续饮酒，部分患者饮酒量达到危险水平，提示临床需加强健康宣教和行为干预。[3][6]
 
-**4. 非药物干预**
-• 紧张型头痛推荐枕部冷敷联合颞动脉压迫，可降低VAS评分2.3分（95%CI 1.7-2.9）
-• 慢性头痛患者建议维持睡眠周期稳定（每晚±30分钟波动），可减少发作频率42%
-
-![头痛治疗策略图](./images/11.png)`,
+下表展示了2020年全球因酒精摄入导致的各类癌症新发病例数及归因分数，强调酒精对多种癌症负担的显著贡献：
+![头痛治疗策略图](./images/22.png)
+综上，肿瘤患者应避免饮酒，减少或戒酒有助于降低癌症复发和死亡风险。`,
                 results: [
                     {
                         id: "HEAD-001",
-                        title: "中医妇科学（第5版）# 冯晓玲，张婷婷主编.中国中医药出版社.pdf",
-                        summary: "经行头痛的中医分期治疗方案，结合现代药理学研究验证传统方剂的有效性。",
-                        journal: "中国中医药出版社",
+                        title: "国际癌症研究机构 (IARC) 对减少或戒酒与癌症风险的看法",
+                        summary: "在全球范围内，乙醇是酒精饮料中酒精的主要形式，也是使用最广泛的精神活性物质。2019年，全球15岁及以上人口中44 %的人在前一年饮用过酒精。饮酒的流行率因地理区域而异，从世界卫生组织( WHO )东地中海地区的4 %到欧洲、美国和西方的至少60%。太平洋区域，且男性高于女性。",
+                        journal: "The New England Journal of Medicine",
                         date: "2024-06-01",
                         level: "Level I",
                         readTime: "3min",
                         impact: [{ name: "有效率", value: 78 }, { name: "复发率", value: 25 }],
                         doi: "10.1001/cmt.2024.001",
-                        imageUrl: "./images/11.png",
+                        imageUrl: "./images/22.png",
                     },
                     {
                         id: "HEAD-002",
-                        title: "神经病学 八年制第3版# 吴江，贾建平主编.人民卫生出版社.pdf",
+                        title: "美国癌症协会关于预防癌症的饮食和体育活动指南",
                         summary: "系统阐述头痛的病理生理机制及现代治疗策略，包括药物选择和剂量优化。",
                         journal: "人民卫生出版社",
                         date: "2025-02-15",
@@ -204,7 +208,7 @@
                     },
                     {
                         id: "HEAD-003",
-                        title: "2025年欧洲卒中组织关于颅内动脉瘤及蛛网膜下腔出血的管理指南(第一部分).pdf",
+                        title: "美国癌症协会针对癌症幸存者的营养和体力活动指南",
                         summary: "低颅压性头痛的诊断标准和硬膜外血贴片治疗的循证医学证据。",
                         journal: "European Stroke Journal",
                         date: "2025-01-10",
@@ -216,7 +220,7 @@
                     },
                     {
                         id: "HEAD-004",
-                        title: "药物滥用性头痛的预防与管理策略",
+                        title: "酒精消费量变化与癌症风险之间的关系",
                         summary: "MOH的识别、预防与治疗方案，强调药物假期和认知行为治疗的重要性。",
                         journal: "Headache Medicine",
                         date: "2024-11-20",
@@ -234,6 +238,7 @@
             const [query, setQuery] = useState("");
             const [results, setResults] = useState(MOCK_DATA);
             const [loading, setLoading] = useState(false);
+            const [searchStage, setSearchStage] = useState(0); // 0: 未开始, 1-4: 检索阶段
             const [filterLevel, setFilterLevel] = useState("All");
             const [view, setView] = useState("cards");
             const [selected, setSelected] = useState(null);
@@ -252,21 +257,34 @@
             function handleSearch(e) {
                 e.preventDefault();
                 setLoading(true);
+                setSearchStage(1);
                 setSelected(null);
                 
                 const q = query.trim();
                 
-                // 检查是否为固定问题
-                if (DEMO_RESPONSES[q]) {
+                // 开始5秒检索动画
+                const stages = [
+                    { stage: 1, delay: 0 },     // 正在分析问题
+                    { stage: 2, delay: 1200 },  // 检索权威医学数据库
+                    { stage: 3, delay: 2800 },  // 引用最新相关内容回答
+                    { stage: 4, delay: 4200 }   // 问题分析完成
+                ];
+                
+                stages.forEach(({ stage, delay }) => {
                     setTimeout(() => {
+                        setSearchStage(stage);
+                    }, delay);
+                });
+                
+                // 5秒后显示结果
+                setTimeout(() => {
+                    // 检查是否为固定问题
+                    if (DEMO_RESPONSES[q]) {
                         const demoData = DEMO_RESPONSES[q];
                         setAiSummary(demoData.aiSummary);
                         setResults(demoData.results);
-                        setLoading(false);
-                    }, 800);
-                } else {
-                    // 原有的搜索逻辑
-                    setTimeout(() => {
+                    } else {
+                        // 原有的搜索逻辑
                         const qLower = q.toLowerCase();
                         const filtered = MOCK_DATA.filter((it) => {
                             if (filterLevel !== "All" && it.level !== filterLevel) return false;
@@ -279,9 +297,10 @@
                         });
                         setResults(filtered);
                         setAiSummary("针对您的问题，智能体给出的专业解答将展示在此处。");
-                        setLoading(false);
-                    }, 400);
-                }
+                    }
+                    setLoading(false);
+                    setSearchStage(0);
+                }, 5000);
             }
 
             function handleQuickSearch(searchTerm) {
@@ -300,12 +319,12 @@
                                 </div>
                                 <div>
                                     <h1 className="text-2xl font-semibold">DeepDecision — 医疗循证平台</h1>
-                                    <p className="text-sm text-slate-500">场景化AI决策 · 快速 · 可追溯（基于AutoBots智能体）</p>
+                                    <p className="text-sm text-slate-500">场景化AI决策 · 快速 · 可追溯</p>
                                 </div>
                             </div>
                             <nav className="space-x-4 text-sm text-slate-600">
                                 <button className="px-3 py-1 rounded-md hover:bg-slate-100">我的收藏</button>
-                                <button className="px-3 py-1 rounded-md hover:bg-slate-100">工作流</button>
+                                <button className="px-3 py-1 rounded-md hover:bg-slate-100">历史查询</button>
                                 <button className="px-3 py-1 rounded-md hover:bg-slate-100">设置</button>
                             </nav>
                         </div>
@@ -327,7 +346,7 @@
 
                         <div className="mt-4 flex gap-3 text-sm">
                             <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-slate-100 shadow-sm">
-                                <span className="text-slate-500">快速场景：</span>
+                                <span className="text-slate-500">热门搜索：</span>
                                 <button
                                     onClick={() => handleQuickSearch("心衰 远程随访")}
                                     className="text-sky-600 hover:underline"
@@ -379,7 +398,7 @@
                                 <div>
                                     <div className="text-xs text-slate-400">专业领域</div>
                                     <div className="mt-2 flex flex-wrap gap-2">
-                                        {['心血管','感染','肾脏','呼吸','内分泌'].map((t)=> (
+                                        {['搜文献','搜指南','查疾病','找药品','搜病例'].map((t)=> (
                                             <button key={t} className="px-2 py-1 bg-slate-50 rounded text-slate-600 text-sm hover:bg-sky-50">{t}</button>
                                         ))}
                                     </div>
@@ -405,33 +424,136 @@
 
                                 <div className="mt-4 p-3 bg-amber-50 rounded-lg">
                                     <div className="text-xs text-amber-700 font-medium">⚠️ 安全提醒</div>
-                                    <div className="text-xs text-amber-600 mt-1">基于AutoBots智能体的医疗建议仅供参考，请结合临床实际情况判断。</div>
+                                    <div className="text-xs text-amber-600 mt-1">基于AI的医疗建议仅供参考，请结合临床实际情况判断。</div>
                                 </div>
                             </div>
                         </aside>
 
                         {/* Results area */}
                         <section className="col-span-9">
-                            {/* 模型总结回复模块，插入在智能检索结果上方 */}
-                            <div className="model-summary glass-effect rounded-xl p-6 mb-6" style={{background:'#f8fafc',border:'1px solid #e0e7ef'}}>
-                                <h3 style={{fontSize:'1.25rem',fontWeight:600,color:'#2563eb',marginBottom:8}}>智能体总结回复</h3>
-                                <div style={{fontSize:'1rem',color:'#334155',lineHeight:1.8,whiteSpace:'pre-line'}} dangerouslySetInnerHTML={{
-                                    __html: aiSummary
-                                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                                        .replace(/^(\d+\.)\s/gm, '<strong>$1</strong> ')
-                                        .replace(/（([SⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩABCDEFGHIJKLMNOPQRSTUVWXYZ0-9]+级证据)）/g, '（<strong>$1</strong>）')
-                                        .replace(/!\[([^\]]*)\]\(([^\)]+)\)/g, '<img src="$2" alt="$1" style="max-width:100%;height:auto;margin:10px 0;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1)" />')
-                                        .replace(/\n/g, '<br/>')
-                                }}>
-                                </div>
-                            </div>
-                            <div className="bg-white rounded-lg p-4 shadow-sm min-h-[300px]">
-                                {loading ? (
-                                    <div className="flex items-center justify-center py-20">
-                                        <div className="animate-pulse text-slate-400">AutoBots智能体分析中…</div>
+                            {/* 加载动画模块 - 在智能体总结回复上方 */}
+                            {loading && (
+                                <div className="bg-white rounded-lg p-4 shadow-sm mb-6">
+                                    <div className="flex flex-col items-center justify-center py-16 space-y-8">
+                                        {/* 检索动画容器 - 居中对齐 */}
+                                        <div className="relative flex items-center justify-center w-48 h-48">
+                                            {/* 中心原子核 - 绝对居中 */}
+                                            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg z-10">
+                                              JD  
+                                            </div>
+                                            
+                                            {/* 第一层轨道 */}
+                                            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 animate-spin" style={{animationDuration: '3s'}}>
+                                                <div className="w-24 h-24 border-2 border-blue-200 rounded-full relative">
+                                                    <div className="w-3 h-3 bg-blue-500 rounded-full absolute -top-1.5 left-1/2 transform -translate-x-1/2"></div>
+                                                </div>
+                                            </div>
+                                            
+                                            {/* 第二层轨道 */}
+                                            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 animate-spin" style={{animationDuration: '2s', animationDirection: 'reverse'}}>
+                                                <div className="w-32 h-32 border-2 border-indigo-200 rounded-full relative">
+                                                    <div className="w-3 h-3 bg-indigo-500 rounded-full absolute top-1/4 -right-1.5 transform translate-y-1/2"></div>
+                                                </div>
+                                            </div>
+                                            
+                                            {/* 第三层轨道 */}
+                                            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 animate-spin" style={{animationDuration: '4s'}}>
+                                                <div className="w-40 h-40 border-2 border-purple-200 rounded-full relative">
+                                                    <div className="w-3 h-3 bg-purple-500 rounded-full absolute bottom-1/4 -left-1.5 transform -translate-y-1/2"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        {/* 检索阶段文字 - 居中布局 */}
+                                        <div className="text-center space-y-4">
+                                            <div className="text-lg font-semibold text-slate-700">
+                                                {searchStage === 1 && (
+                                                    <div className="flex items-center justify-center gap-2">
+                                                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                                                        正在分析问题
+                                                        <div className="flex gap-1">
+                                                            <div className="w-1 h-1 bg-blue-400 rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
+                                                            <div className="w-1 h-1 bg-blue-400 rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
+                                                            <div className="w-1 h-1 bg-blue-400 rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                {searchStage === 2 && (
+                                                    <div className="flex items-center justify-center gap-2">
+                                                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                                                        检索权威医学数据库26篇..
+                                                    </div>
+                                                )}
+                                                {searchStage === 3 && (
+                                                    <div className="flex items-center justify-center gap-2">
+                                                        <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
+                                                        引用最新相关内容回答
+                                                    </div>
+                                                )}
+                                                {searchStage === 4 && (
+                                                    <div className="flex items-center justify-center gap-2">
+                                                        <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
+                                                        问题分析完成
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="text-sm text-slate-500">
+                                                理解问题梳理大纲...
+                                            </div>
+                                            
+                                            {/* 进度条 - 居中对齐 */}
+                                            <div className="flex justify-center">
+                                                <div className="w-64 h-2 bg-slate-200 rounded-full overflow-hidden">
+                                                    <div 
+                                                        className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-1000 ease-out"
+                                                        style={{width: `${searchStage * 25}%`}}
+                                                    ></div>
+                                                </div>
+                                            </div>
+                                            
+                                            {/* 数据库图标 */}
+                                            {searchStage >= 2 && (
+                                                <div className="flex items-center justify-center gap-4 mt-4 animate-fade-in">
+                                                    <div className="flex items-center gap-2 px-3 py-1 bg-blue-50 rounded-full">
+                                                        <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold">中</div>
+                                                        <span className="text-xs text-slate-600">中华医学杂志</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 px-3 py-1 bg-blue-50 rounded-full">
+                                                        <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold">N</div>
+                                                        <span className="text-xs text-slate-600">NEJM</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 px-3 py-1 bg-blue-50 rounded-full">
+                                                        <div className="w-6 h-6 bg-green-600 rounded-full flex items-center justify-center text-white text-xs font-bold">L</div>
+                                                        <span className="text-xs text-slate-600">Lancet</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 px-3 py-1 bg-blue-50 rounded-full">
+                                                        <div className="w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center text-white text-xs font-bold">J</div>
+                                                        <span className="text-xs text-slate-600">JAMA</span>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
-                                ) : (
-                                    <>
+                                </div>
+                            )}
+                            
+                            {/* 模型总结回复模块 - 在loading时隐藏 */}
+            {!loading && aiSummary && (
+                <div className="model-summary glass-effect rounded-xl p-6 mb-6" style={{background:'#f8fafc',border:'1px solid #e0e7ef'}}>
+                                    <h3 style={{fontSize:'1.25rem',fontWeight:600,color:'#2563eb',marginBottom:8}}>核心总结</h3>
+                                    <div style={{fontSize:'1rem',color:'#334155',lineHeight:1.8,whiteSpace:'pre-line'}} dangerouslySetInnerHTML={{
+                                        __html: aiSummary
+                                            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                                            .replace(/^(\d+\.)\s/gm, '<strong>$1</strong> ')
+                                            .replace(/（([SⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩABCDEFGHIJKLMNOPQRSTUVWXYZ0-9]+级证据)）/g, '（<strong>$1</strong>）')
+                                            .replace(/!\[([^\]]*)\]\(([^\)]+)\)/g, '<img src="$2" alt="$1" style="max-width:100%;height:auto;margin:10px 0;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1)" />')
+                                            .replace(/\n/g, '<br/>')
+                                    }}>
+                                    </div>
+                                </div>
+                            )}
+                            {!loading && (
+                                 <div className="bg-white rounded-lg p-4 shadow-sm min-h-[300px]">
                                         <div className="flex items-center justify-between mb-4">
                                             <div>
                                                 <div className="text-sm text-slate-500">显示 {results.length} 条循证结果</div>
@@ -481,9 +603,8 @@
                                                 ))}
                                             </div>
                                         )}
-                                    </>
-                                )}
-                            </div>
+                                </div>
+                            )}
                         </section>
                     </main>
 
