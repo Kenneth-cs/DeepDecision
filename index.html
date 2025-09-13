@@ -96,6 +96,50 @@
 
         // 固定问题-答案映射
         const DEMO_RESPONSES = {
+            "屈光手术中，全飞秒、LASIK和PRK的长期角膜稳定性有无差异？": {
+                aiSummary: `根据最新临床研究和系统综述，**全飞秒（SMILE）**、**激光原位角膜磨镶术（LASIK/FS-LASIK）**和**准分子激光角膜切削术（PRK）**在长期角膜稳定性方面存在一定差异。
+
+1. **角膜生物力学稳定性**：多项研究显示，FS-LASIK对角膜生物力学影响最大，SMILE次之，PRK影响最小。SMILE由于保留了更多前部角膜组织（不制瓣，仅小切口），理论上对角膜力学结构影响较小，长期稳定性更好。PRK为表层消融，保留了角膜前部结构，生物力学影响最小，长期稳定性优异。[1-5]
+2. **长期屈光稳定性**：SMILE术后10年随访显示屈光度和角膜形态高度稳定，无明显回退或并发症。PRK术后20年随访显示角膜形态和屈光度基本稳定，尤其在中低度近视患者中。LASIK长期随访（11-12年）发现部分患者存在轻度屈光回退，角膜曲率逐年增加，提示角膜稳定性略逊于SMILE和PRK。[4-10]
+3. **角膜并发症风险**：SMILE和PRK长期并发症发生率低，极少见角膜扩张等严重并发症。LASIK因制瓣，理论上角膜扩张风险略高，尤其在高风险人群中。[4-6][8-11]
+
+综上，PRK和SMILE在长期角膜稳定性方面优于LASIK/FS-LASIK，PRK生物力学影响最小，SMILE次之，LASIK最大。但三者均为安全有效的屈光手术，具体选择需结合患者角膜条件和屈光需求。[1-10]`,
+                results: [
+                    {
+                        id: "EYE-001",
+                        title: "近视眼激光屈光手术后角膜生物力学的临床评估：文献综述",
+                        summary: "目前，角膜生物力学在激光视力矫正 (LVC) 术后角膜扩张风险评估中的作用正在被提出。本文旨在通过对现有研究进行系统回顾，评估 LVC 术后角膜生物力学的变化。我们在 PubMed、Science Direct、Google Scholar 和 Web of Science 数据库中检索文献，并根据 PRISMA 2020 流程图对结果进行最终审核。我们的回顾纳入了 17 项前瞻性临床研究，随访时间至少为 6 个月。使用眼部反应分析仪 (ORA) 或 Corvis ST 评估角膜生物力学特性。研究结果显示，在激光原位角膜磨镶术 (LASIK) 之后进行小切口角膜透镜摘除术 (SMILE) 和表面手术，例如屈光性角膜切削术 (PRK) 或激光辅助上皮下角膜切削术 (LASEK) 后，角膜生物力学的降低程度最高。在SMILE手术治疗计划中，使用较厚的角膜帽可保持角膜生物力学。同样，在LASIK手术中减少角膜瓣厚度可维持角膜生物力学强度。未来需要开展前瞻性临床试验，对研究组和手术参数进行标准化，以验证本综述的结果。",
+                        journal: "Journal of Clinical Medicine",
+                        date: "2024-03-15",
+                        level: "Level I",
+                        readTime: "4min",
+                        impact: [{name: "稳定性", value: 95}, {name: "满意度", value: 92}],
+                        doi: "10.3928/jrs.2024.001"
+                    },
+                    {
+                        id: "EYE-002",
+                        title: "PRK术后20年角膜生物力学变化的前瞻性研究",
+                        summary: "评估PRK手术对角膜生物力学的长期影响，证实其对角膜结构的最小干扰。",
+                        journal: "Cornea",
+                        date: "2024-01-20",
+                        level: "Level I",
+                        readTime: "5min",
+                        impact: [{name: "生物力学稳定性", value: 98}, {name: "并发症率", value: 2}],
+                        doi: "10.1097/ico.2024.002"
+                    },
+                    {
+                        id: "EYE-003",
+                        title: "LASIK与SMILE术后角膜扩张风险的Meta分析",
+                        summary: "系统分析比较LASIK和SMILE术后角膜扩张的发生率和风险因素。",
+                        journal: "Ophthalmology",
+                        date: "2024-02-10",
+                        level: "Level II",
+                        readTime: "3min",
+                        impact: [{name: "扩张风险", value: 15}, {name: "预测准确性", value: 87}],
+                        doi: "10.1016/j.ophtha.2024.003"
+                    }
+                ]
+            },
             "头疼怎么治": {
                 aiSummary: `头痛的治疗需遵循个体化原则，结合病因与症状特点进行分层干预：
 
@@ -353,8 +397,13 @@
                             {/* 模型总结回复模块，插入在智能检索结果上方 */}
                             <div className="model-summary glass-effect rounded-xl p-6 mb-6" style={{background:'#f8fafc',border:'1px solid #e0e7ef'}}>
                                 <h3 style={{fontSize:'1.25rem',fontWeight:600,color:'#2563eb',marginBottom:8}}>智能体总结回复</h3>
-                                <div style={{fontSize:'1rem',color:'#334155',lineHeight:1.8,whiteSpace:'pre-line'}}>
-                                    {aiSummary}
+                                <div style={{fontSize:'1rem',color:'#334155',lineHeight:1.8,whiteSpace:'pre-line'}} dangerouslySetInnerHTML={{
+                                    __html: aiSummary
+                                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                                        .replace(/^(\d+\.)\s/gm, '<strong>$1</strong> ')
+                                        .replace(/（([SⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩABCDEFGHIJKLMNOPQRSTUVWXYZ0-9]+级证据)）/g, '（<strong>$1</strong>）')
+                                        .replace(/\n/g, '<br/>')
+                                }}>
                                 </div>
                             </div>
                             <div className="bg-white rounded-lg p-4 shadow-sm min-h-[300px]">
