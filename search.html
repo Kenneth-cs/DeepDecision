@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>京东医疗循证平台 - 医疗循证平台</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/framer-motion@10/dist/framer-motion.js"></script>
+    <script src="https://unpkg.com/recharts@2.8.0/umd/Recharts.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .bg-surface-50 {
+            background-color: #f8fafc;
+        }
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: .5;
+            }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.8s ease-in-out;
+        }
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const { motion } = window.Motion || { motion: { div: 'div', article: 'article' } };
+        const { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } = window.Recharts || {};
+
+        // Mock dataset simulating evidence results
+        const MOCK_DATA = [
+            {
+                id: "EVID-001",
+                title: "阿司匹林降低急性冠脉综合征患者30天MACE事件",
+                summary: "随机对照试验的荟萃分析显示，阿司匹林可显著降低急性冠脉综合征患者30天内主要不良心血管事件(MACE)的发生率。",
+                journal: "NEJM",
+                date: "2024-11-10",
+                level: "Level I",
+                readTime: "45s",
+                impact: [{ name: "MACE", value: 28 }, { name: "出血", value: 8 }],
+                doi: "10.1056/NEJMoa2024",
+                imageUrl: "./images/11.png",
+            },
+            {
+                id: "EVID-002",
+                title: "短程抗生素治疗单纯性尿路感染非劣效性研究",
+                summary: "多中心随机对照试验发现，3天疗程与7天疗程在单纯性尿路感染临床治愈率方面具有非劣效性。",
+                journal: "JAMA",
+                date: "2025-02-21",
+                level: "Level II",
+                readTime: "35s",
+                impact: [{ name: "治愈率", value: 92 }, { name: "复发率", value: 5 }],
+                doi: "10.1001/jama.2025",
+                imageUrl: "./images/11.png",
+            },
+            {
+                id: "EVID-003",
+                title: "SGLT2抑制剂改善慢性肾病患者肾脏结局",
+                summary: "汇总分析表明，SGLT2抑制剂能显著延缓慢性肾病患者eGFR下降速度，降低终末期肾病风险。",
+                journal: "Lancet",
+                date: "2024-06-03",
+                level: "Level I",
+                readTime: "55s",
+                impact: [{ name: "eGFR改善", value: 10 }, { name: "ESRD风险", value: 2 }],
+                doi: "10.1016/S0140-6736(24)00001-2",
+                imageUrl: "./images/11.png",
+            },
+            {
+                id: "EVID-004",
+                title: "低剂量糖皮质激素加速重症COVID-19患者康复",
+                summary: "观察性研究提示有益效果；随机证据结果不一——需考虑患者选择。",
+                journal: "BMJ",
+                date: "2023-12-15",
+                level: "Level III",
+                readTime: "1min",
+                impact: [{ name: "康复时间", value: 40 }, { name: "死亡率", value: 12 }],
+                doi: "10.1136/bmj-2023-001234",
+                imageUrl: "./images/11.png",
+            },
+            {
+                id: "EVID-005",
+                title: "远程医疗随访降低心衰患者再入院率",
+                summary: "整群随机对照试验显示，结构化远程医疗随访可降低90天再入院率。",
+                journal: "Circulation",
+                date: "2024-09-01",
+                level: "Level II",
+                readTime: "30s",
+                impact: [{ name: "再入院", value: 18 }, { name: "门诊", value: 22 }],
+                doi: "10.1161/CIRCULATIONAHA.124.000000",
+                imageUrl: "./images/11.png",
+            },
+        ];
+
+        // 固定问题-答案映射
+        const DEMO_RESPONSES = {
+            "屈光手术中，全飞秒、LASIK和PRK的长期角膜稳定性有无差异？": {
+                aiSummary: `根据最新临床研究和系统综述，**全飞秒（SMILE）**、**激光原位角膜磨镶术（LASIK/FS-LASIK）**和**准分子激光角膜切削术（PRK）**在长期角膜稳定性方面存在一定差异。
+
+1. **角膜生物力学稳定性**：多项研究显示，FS-LASIK对角膜生物力学影响最大，SMILE次之，PRK影响最小。SMILE由于保留了更多前部角膜组织（不制瓣，仅小切口），理论上对角膜力学结构影响较小，长期稳定性更好。PRK为表层消融，保留了角膜前部结构，生物力学影响最小，长期稳定性优异。[1-5]
+
+2. **长期屈光稳定性**：SMILE术后10年随访显示屈光度和角膜形态高度稳定，无明显回退或并发症。PRK术后20年随访显示角膜形态和屈光度基本稳定，尤其在中低度近视患者中。LASIK长期随访（11-12年）发现部分患者存在轻度屈光回退，角膜曲率逐年增加，提示角膜稳定性略逊于SMILE和PRK。[4-10]
+
+3. **角膜并发症风险**：SMILE和PRK长期并发症发生率低，极少见角膜扩张等严重并发症。LASIK因制瓣，理论上角膜扩张风险略高，尤其在高风险人群中。[4-6][8-11]
+
+综上，PRK和SMILE在长期角膜稳定性方面优于LASIK/FS-LASIK，PRK生物力学影响最小，SMILE次之，LASIK最大。但三者均为安全有效的屈光手术，具体选择需结合患者角膜条件和屈光需求。[1-10]
+
+![屈光手术对比分析](./images/11.png)`,
+                results: [
+                    {
+                        id: "EYE-001",
+                        title: "近视眼激光屈光手术后角膜生物力学的临床评估：文献综述",
+                        summary: "目前，角膜生物力学在激光视力矫正 (LVC) 术后角膜扩张风险评估中的作用正在被提出。本文旨在通过对现有研究进行系统回顾，评估 LVC 术后角膜生物力学的变化。我们在 PubMed、Science Direct、Google Scholar 和 Web of Science 数据库中检索文献，并根据 PRISMA 2020 流程图对结果进行最终审核。我们的回顾纳入了 17 项前瞻性临床研究，随访时间至少为 6 个月。使用眼部反应分析仪 (ORA) 或 Corvis ST 评估角膜生物力学特性。研究结果显示，在激光原位角膜磨镶术 (LASIK) 之后进行小切口角膜透镜摘除术 (SMILE) 和表面手术，例如屈光性角膜切削术 (PRK) 或激光辅助上皮下角膜切削术 (LASEK) 后，角膜生物力学的降低程度最高。在SMILE手术治疗计划中，使用较厚的角膜帽可保持角膜生物力学。同样，在LASIK手术中减少角膜瓣厚度可维持角膜生物力学强度。未来需要开展前瞻性临床试验，对研究组和手术参数进行标准化，以验证本综述的结果。",
+                        journal: "Journal of Clinical Medicine",
+                        date: "2024-03-15",
+                        level: "Level I",
+                        readTime: "4min",
+                        impact: [{name: "稳定性", value: 95}, {name: "满意度", value: 92}],
+                        doi: "10.3928/jrs.2024.001",
+                        imageUrl: "./images/11.png"
+                    },
+                    {
+                        id: "EYE-002",
+                        title: "三种不同激光角膜屈光手术对体内角膜生物力学的影响",
+                        summary: "评估PRK手术对角膜生物力学的长期影响，证实其对角膜结构的最小干扰。",
+                        journal: "Cornea",
+                        date: "2024-01-20",
+                        level: "Level I",
+                        readTime: "5min",
+                        impact: [{name: "生物力学稳定性", value: 98}, {name: "并发症率", value: 2}],
+                        doi: "10.1097/ico.2024.002",
+                        imageUrl: "./images/11.png"
+                    },
+                    {
+                        id: "EYE-003",
+                        title: "准分子激光屈光性角膜切削术随机前瞻性临床试验的二十年随访",
+                        summary: "系统分析比较LASIK和SMILE术后角膜扩张的发生率和风险因素。",
+                        journal: "Ophthalmology",
+                        date: "2024-02-10",
+                        level: "Level II",
+                        readTime: "3min",
+                        impact: [{name: "扩张风险", value: 15}, {name: "预测准确性", value: 87}],
+                        doi: "10.1016/j.ophtha.2024.003",
+                        imageUrl: "./images/11.png"
+                    }
+                ]
+            },
+            "肿瘤患者可以饮酒吗？": {
+                aiSummary: `** 肿瘤患者不建议饮酒。** 
+肿瘤患者饮酒建议及相关风险：根据**世界卫生组织（WHO）**、**国际癌症研究机构（IARC）** 以及**美国癌症学会（American Cancer Society）** 的最新共识，酒精被确认为**人类致癌物（Group 1）**，与多种癌症（如口腔、咽喉、喉、食管、肝脏、结直肠和乳腺癌）发生密切相关，且“**没有安全的饮酒量**”。
+对于肿瘤患者，饮酒不仅增加复发和第二原发癌的风险，还可能影响治疗效果、增加并发症和死亡率。[1-4]
+
+美国癌症学会建议：
+- 肿瘤患者最好**完全避免饮酒**；
+- 如确实选择饮酒，女性每日不超过1杯，男性不超过2杯（1杯约含14克乙醇）。
+
+即使是少量饮酒也会增加某些癌症风险，**所有类型酒精饮品（啤酒、葡萄酒、烈酒）风险相同**。研究显示，戒酒或减少饮酒可降低癌症风险，但重度饮酒者即使减少饮酒，风险仍高于长期不饮酒者。[2-3][5]
+
+值得注意的是，尽管风险明确，仍有大量肿瘤患者持续饮酒，部分患者饮酒量达到危险水平，提示临床需加强健康宣教和行为干预。[3][6]
+
+下表展示了2020年全球因酒精摄入导致的各类癌症新发病例数及归因分数，强调酒精对多种癌症负担的显著贡献：
+![头痛治疗策略图](./images/22.png)
+综上，肿瘤患者应避免饮酒，减少或戒酒有助于降低癌症复发和死亡风险。`,
+                results: [
+                    {
+                        id: "HEAD-001",
+                        title: "国际癌症研究机构 (IARC) 对减少或戒酒与癌症风险的看法",
+                        summary: "在全球范围内，乙醇是酒精饮料中酒精的主要形式，也是使用最广泛的精神活性物质。2019年，全球15岁及以上人口中44 %的人在前一年饮用过酒精。饮酒的流行率因地理区域而异，从世界卫生组织( WHO )东地中海地区的4 %到欧洲、美国和西方的至少60%。太平洋区域，且男性高于女性。",
+                        journal: "The New England Journal of Medicine",
+                        date: "2024-06-01",
+                        level: "Level I",
+                        readTime: "3min",
+                        impact: [{ name: "有效率", value: 78 }, { name: "复发率", value: 25 }],
+                        doi: "10.1001/cmt.2024.001",
+                        imageUrl: "./images/22.png",
+                    },
+                    {
+                        id: "HEAD-002",
+                        title: "美国癌症协会关于预防癌症的饮食和体育活动指南",
+                        summary: "系统阐述头痛的病理生理机制及现代治疗策略，包括药物选择和剂量优化。",
+                        journal: "人民卫生出版社",
+                        date: "2025-02-15",
+                        level: "Level II",
+                        readTime: "5min",
+                        impact: [{ name: "症状缓解", value: 85 }, { name: "生活质量", value: 72 }],
+                        doi: "10.1001/neurol.2025.002",
+                        imageUrl: "./images/11.png",
+                    },
+                    {
+                        id: "HEAD-003",
+                        title: "美国癌症协会针对癌症幸存者的营养和体力活动指南",
+                        summary: "低颅压性头痛的诊断标准和硬膜外血贴片治疗的循证医学证据。",
+                        journal: "European Stroke Journal",
+                        date: "2025-01-10",
+                        level: "Level I",
+                        readTime: "4min",
+                        impact: [{ name: "治愈率", value: 83 }, { name: "并发症", value: 12 }],
+                        doi: "10.1177/eso.2025.001",
+                        imageUrl: "./images/11.png",
+                    },
+                    {
+                        id: "HEAD-004",
+                        title: "酒精消费量变化与癌症风险之间的关系",
+                        summary: "MOH的识别、预防与治疗方案，强调药物假期和认知行为治疗的重要性。",
+                        journal: "Headache Medicine",
+                        date: "2024-11-20",
+                        level: "Level II",
+                        readTime: "2min",
+                        impact: [{ name: "预防效果", value: 68 }, { name: "复发控制", value: 60 }],
+                        doi: "10.1111/head.2024.003",
+                        imageUrl: "./images/11.png",
+                    },
+                ]
+            }
+        };
+
+        function JingDongMedicalApp() {
+            const [query, setQuery] = useState("");
+            const [results, setResults] = useState(MOCK_DATA);
+            const [loading, setLoading] = useState(false);
+            const [searchStage, setSearchStage] = useState(0); // 0: 未开始, 1-4: 检索阶段
+            const [filterLevel, setFilterLevel] = useState("All");
+            const [view, setView] = useState("cards");
+            const [selected, setSelected] = useState(null);
+            const [aiSummary, setAiSummary] = useState("针对您的问题，智能体给出的专业解答将展示在此处。");
+
+            useEffect(() => {
+                // initial load mimic
+                setLoading(true);
+                const t = setTimeout(() => {
+                    setResults(MOCK_DATA);
+                    setLoading(false);
+                }, 500);
+                return () => clearTimeout(t);
+            }, []);
+
+            function handleSearch(e) {
+                e.preventDefault();
+                setLoading(true);
+                setSearchStage(1);
+                setSelected(null);
+                
+                const q = query.trim();
+                
+                // 开始5秒检索动画
+                const stages = [
+                    { stage: 1, delay: 0 },     // 正在分析问题
+                    { stage: 2, delay: 1200 },  // 检索权威医学数据库
+                    { stage: 3, delay: 2800 },  // 引用最新相关内容回答
+                    { stage: 4, delay: 4200 }   // 问题分析完成
+                ];
+                
+                stages.forEach(({ stage, delay }) => {
+                    setTimeout(() => {
+                        setSearchStage(stage);
+                    }, delay);
+                });
+                
+                // 5秒后显示结果
+                setTimeout(() => {
+                    // 检查是否为固定问题
+                    if (DEMO_RESPONSES[q]) {
+                        const demoData = DEMO_RESPONSES[q];
+                        setAiSummary(demoData.aiSummary);
+                        setResults(demoData.results);
+                    } else {
+                        // 原有的搜索逻辑
+                        const qLower = q.toLowerCase();
+                        const filtered = MOCK_DATA.filter((it) => {
+                            if (filterLevel !== "All" && it.level !== filterLevel) return false;
+                            if (!qLower) return true;
+                            return (
+                                it.title.toLowerCase().includes(qLower) ||
+                                it.summary.toLowerCase().includes(qLower) ||
+                                it.journal.toLowerCase().includes(qLower)
+                            );
+                        });
+                        setResults(filtered);
+                        setAiSummary("针对您的问题，智能体给出的专业解答将展示在此处。");
+                    }
+                    setLoading(false);
+                    setSearchStage(0);
+                }, 5000);
+            }
+
+            function handleQuickSearch(searchTerm) {
+                setQuery(searchTerm);
+                const event = { preventDefault: () => {} };
+                handleSearch(event);
+            }
+
+            return (
+                <div className="min-h-screen bg-surface-50 text-slate-900 p-6">
+                    <header className="max-w-6xl mx-auto">
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-gradient-to-br from-sky-400 to-indigo-600 rounded-lg flex items-center justify-center text-white font-semibold">
+                                    DD
+                                </div>
+                                <div>
+                                    <h1 className="text-2xl font-semibold">京东医疗循证平台 — 医疗循证平台</h1>
+                                    <p className="text-sm text-slate-500">场景化AI决策 · 快速 · 可追溯</p>
+                                </div>
+                            </div>
+                            <nav className="space-x-4 text-sm text-slate-600">
+                                <button className="px-3 py-1 rounded-md hover:bg-slate-100">我的收藏</button>
+                                <button className="px-3 py-1 rounded-md hover:bg-slate-100">历史查询</button>
+                                <button className="px-3 py-1 rounded-md hover:bg-slate-100">设置</button>
+                            </nav>
+                        </div>
+
+                        <form onSubmit={handleSearch} className="flex gap-3 items-center">
+                            <input
+                                value={query}
+                                onChange={(e) => setQuery(e.target.value)}
+                                placeholder="输入临床问题或关键词（例：糖尿病足 治疗方案）"
+                                className="flex-1 bg-white border border-slate-200 shadow-sm rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-sky-300"
+                            />
+                            <button
+                                type="submit"
+                                className="bg-sky-600 text-white px-4 py-2 rounded-lg hover:bg-sky-700"
+                            >
+                                智能搜索
+                            </button>
+                        </form>
+
+                        <div className="mt-4 flex gap-3 text-sm">
+                            <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-slate-100 shadow-sm">
+                                <span className="text-slate-500">热门搜索：</span>
+                                <button
+                                    onClick={() => handleQuickSearch("心衰 远程随访")}
+                                    className="text-sky-600 hover:underline"
+                                >
+                                    心衰随访
+                                </button>
+                                <button
+                                    onClick={() => handleQuickSearch("短程 抗生素 尿路感染")}
+                                    className="text-sky-600 hover:underline"
+                                >
+                                    尿路感染
+                                </button>
+                                <button
+                                    onClick={() => handleQuickSearch("SGLT2 慢性肾病")}
+                                    className="text-sky-600 hover:underline"
+                                >
+                                    肾病治疗
+                                </button>
+                            </div>
+
+                            <div className="flex items-center gap-1 text-slate-500">
+                                <span>证据等级：</span>
+                                <select
+                                    value={filterLevel}
+                                    onChange={(e) => setFilterLevel(e.target.value)}
+                                    className="bg-white border border-slate-200 rounded px-2 py-1"
+                                >
+                                    <option>All</option>
+                                    <option>Level I</option>
+                                    <option>Level II</option>
+                                    <option>Level III</option>
+                                </select>
+                            </div>
+
+                            <div className="ml-auto flex items-center gap-2">
+                                <span className="text-slate-500">视图：</span>
+                                <button onClick={() => setView("cards")} className={`px-2 py-1 rounded ${view === "cards" ? "bg-sky-600 text-white" : "bg-white"}`}>卡片</button>
+                                <button onClick={() => setView("list")} className={`px-2 py-1 rounded ${view === "list" ? "bg-sky-600 text-white" : "bg-white"}`}>列表</button>
+                                <button onClick={() => setView("visual")} className={`px-2 py-1 rounded ${view === "visual" ? "bg-sky-600 text-white" : "bg-white"}`}>可视化</button>
+                            </div>
+                        </div>
+                    </header>
+
+                    <main className="max-w-6xl mx-auto mt-6 grid grid-cols-12 gap-6">
+                        {/* Sidebar */}
+                        <aside className="col-span-3 bg-white rounded-lg p-4 shadow-sm h-fit">
+                            <h3 className="font-medium mb-3">筛选 & 场景</h3>
+                            <div className="space-y-3 text-sm text-slate-600">
+                                <div>
+                                    <div className="text-xs text-slate-400">专业领域</div>
+                                    <div className="mt-2 flex flex-wrap gap-2">
+                                        {['搜文献','搜指南','查疾病','找药品','搜病例'].map((t)=> (
+                                            <button key={t} className="px-2 py-1 bg-slate-50 rounded text-slate-600 text-sm hover:bg-sky-50">{t}</button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div className="text-xs text-slate-400">时间范围</div>
+                                    <div className="mt-2 flex gap-2">
+                                        <button className="px-2 py-1 bg-slate-50 rounded hover:bg-sky-50">一年内</button>
+                                        <button className="px-2 py-1 bg-slate-50 rounded hover:bg-sky-50">三年内</button>
+                                        <button className="px-2 py-1 bg-slate-50 rounded hover:bg-sky-50">全部</button>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div className="text-xs text-slate-400">AI工具</div>
+                                    <div className="mt-2 flex flex-col gap-2">
+                                        <button className="px-3 py-2 rounded bg-sky-50 text-sky-700 hover:bg-sky-100">生成诊疗建议</button>
+                                        <button className="px-3 py-2 rounded bg-sky-50 text-sky-700 hover:bg-sky-100">生成患者材料</button>
+                                        <button className="px-3 py-2 rounded bg-sky-50 text-sky-700 hover:bg-sky-100">安全性检查</button>
+                                    </div>
+                                </div>
+
+                                <div className="mt-4 p-3 bg-amber-50 rounded-lg">
+                                    <div className="text-xs text-amber-700 font-medium">⚠️ 安全提醒</div>
+                                    <div className="text-xs text-amber-600 mt-1">基于AI的医疗建议仅供参考，请结合临床实际情况判断。</div>
+                                </div>
+                            </div>
+                        </aside>
+
+                        {/* Results area */}
+                        <section className="col-span-9">
+                            {/* 加载动画模块 - 在智能体总结回复上方 */}
+                            {loading && (
+                                <div className="bg-white rounded-lg p-4 shadow-sm mb-6">
+                                    <div className="flex flex-col items-center justify-center py-16 space-y-8">
+                                        {/* 检索动画容器 - 居中对齐 */}
+                                        <div className="relative flex items-center justify-center w-48 h-48">
+                                            {/* 中心原子核 - 绝对居中 */}
+                                            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg z-10">
+                                              JD  
+                                            </div>
+                                            
+                                            {/* 第一层轨道 */}
+                                            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 animate-spin" style={{animationDuration: '3s'}}>
+                                                <div className="w-24 h-24 border-2 border-blue-200 rounded-full relative">
+                                                    <div className="w-3 h-3 bg-blue-500 rounded-full absolute -top-1.5 left-1/2 transform -translate-x-1/2"></div>
+                                                </div>
+                                            </div>
+                                            
+                                            {/* 第二层轨道 */}
+                                            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 animate-spin" style={{animationDuration: '2s', animationDirection: 'reverse'}}>
+                                                <div className="w-32 h-32 border-2 border-indigo-200 rounded-full relative">
+                                                    <div className="w-3 h-3 bg-indigo-500 rounded-full absolute top-1/4 -right-1.5 transform translate-y-1/2"></div>
+                                                </div>
+                                            </div>
+                                            
+                                            {/* 第三层轨道 */}
+                                            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 animate-spin" style={{animationDuration: '4s'}}>
+                                                <div className="w-40 h-40 border-2 border-purple-200 rounded-full relative">
+                                                    <div className="w-3 h-3 bg-purple-500 rounded-full absolute bottom-1/4 -left-1.5 transform -translate-y-1/2"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        {/* 检索阶段文字 - 居中布局 */}
+                                        <div className="text-center space-y-4">
+                                            <div className="text-lg font-semibold text-slate-700">
+                                                {searchStage === 1 && (
+                                                    <div className="flex items-center justify-center gap-2">
+                                                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                                                        正在分析问题
+                                                        <div className="flex gap-1">
+                                                            <div className="w-1 h-1 bg-blue-400 rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
+                                                            <div className="w-1 h-1 bg-blue-400 rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
+                                                            <div className="w-1 h-1 bg-blue-400 rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                {searchStage === 2 && (
+                                                    <div className="flex items-center justify-center gap-2">
+                                                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                                                        检索权威医学数据库26篇..
+                                                    </div>
+                                                )}
+                                                {searchStage === 3 && (
+                                                    <div className="flex items-center justify-center gap-2">
+                                                        <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
+                                                        引用最新相关内容回答
+                                                    </div>
+                                                )}
+                                                {searchStage === 4 && (
+                                                    <div className="flex items-center justify-center gap-2">
+                                                        <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
+                                                        问题分析完成
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="text-sm text-slate-500">
+                                                理解问题梳理大纲...
+                                            </div>
+                                            
+                                            {/* 进度条 - 居中对齐 */}
+                                            <div className="flex justify-center">
+                                                <div className="w-64 h-2 bg-slate-200 rounded-full overflow-hidden">
+                                                    <div 
+                                                        className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-1000 ease-out"
+                                                        style={{width: `${searchStage * 25}%`}}
+                                                    ></div>
+                                                </div>
+                                            </div>
+                                            
+                                            {/* 数据库图标 */}
+                                            {searchStage >= 2 && (
+                                                <div className="flex items-center justify-center gap-4 mt-4 animate-fade-in">
+                                                    <div className="flex items-center gap-2 px-3 py-1 bg-blue-50 rounded-full">
+                                                        <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold">中</div>
+                                                        <span className="text-xs text-slate-600">中华医学杂志</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 px-3 py-1 bg-blue-50 rounded-full">
+                                                        <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold">N</div>
+                                                        <span className="text-xs text-slate-600">NEJM</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 px-3 py-1 bg-blue-50 rounded-full">
+                                                        <div className="w-6 h-6 bg-green-600 rounded-full flex items-center justify-center text-white text-xs font-bold">L</div>
+                                                        <span className="text-xs text-slate-600">Lancet</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 px-3 py-1 bg-blue-50 rounded-full">
+                                                        <div className="w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center text-white text-xs font-bold">J</div>
+                                                        <span className="text-xs text-slate-600">JAMA</span>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                            
+                            {/* 模型总结回复模块 - 在loading时隐藏 */}
+            {!loading && aiSummary && (
+                <div className="model-summary glass-effect rounded-xl p-6 mb-6" style={{background:'#f8fafc',border:'1px solid #e0e7ef'}}>
+                                    <h3 style={{fontSize:'1.25rem',fontWeight:600,color:'#2563eb',marginBottom:8}}>核心总结</h3>
+                                    <div style={{fontSize:'1rem',color:'#334155',lineHeight:1.8,whiteSpace:'pre-line'}} dangerouslySetInnerHTML={{
+                                        __html: aiSummary
+                                            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                                            .replace(/^(\d+\.)\s/gm, '<strong>$1</strong> ')
+                                            .replace(/（([SⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩABCDEFGHIJKLMNOPQRSTUVWXYZ0-9]+级证据)）/g, '（<strong>$1</strong>）')
+                                            .replace(/!\[([^\]]*)\]\(([^\)]+)\)/g, '<img src="$2" alt="$1" style="max-width:100%;height:auto;margin:10px 0;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1)" />')
+                                            .replace(/\n/g, '<br/>')
+                                    }}>
+                                    </div>
+                                </div>
+                            )}
+                            {!loading && (
+                                 <div className="bg-white rounded-lg p-4 shadow-sm min-h-[300px]">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div>
+                                                <div className="text-sm text-slate-500">显示 {results.length} 条循证结果</div>
+                                                <h2 className="text-xl font-semibold">智能检索结果</h2>
+                                            </div>
+                                        </div>
+
+                                        {view === 'visual' && ResponsiveContainer ? (
+                                            <div className="h-64">
+                                                <ResponsiveContainer width="100%" height={250}>
+                                                    <BarChart data={results.map(r => ({ name: r.journal, value: r.impact.reduce((s,i)=>s+i.value,0) }))}>
+                                                        <XAxis dataKey="name" />
+                                                        <YAxis />
+                                                        <Tooltip />
+                                                        <Bar dataKey="value" fill="#0ea5e9" />
+                                                    </BarChart>
+                                                </ResponsiveContainer>
+                                            </div>
+                                        ) : (
+                                            <div className={view === 'cards' ? 'grid grid-cols-2 gap-4' : 'space-y-3'}>
+                                                {results.map((r) => (
+                                                    <article key={r.id} className="bg-white border border-slate-100 p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer" onClick={() => setSelected(r)}>
+                                                        <div className="flex justify-between items-start">
+                                                            <div className="flex-1">
+                                                                <h3 className="font-medium text-slate-900">{r.title}</h3>
+                                                                <p className="text-sm text-slate-600 mt-1 line-clamp-2">{r.summary}</p>
+                                                                <div className="mt-3 flex items-center gap-3 text-xs text-slate-500">
+                                                                    <span className={`px-2 py-1 rounded ${
+                                                                        r.level === 'Level I' ? 'bg-green-100 text-green-700' :
+                                                                        r.level === 'Level II' ? 'bg-blue-100 text-blue-700' :
+                                                                        'bg-yellow-100 text-yellow-700'
+                                                                    }`}>{r.level}</span>
+                                                                    <span>{r.journal}</span>
+                                                                    <span>{r.date}</span>
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="ml-4 flex flex-col items-end gap-2">
+                                                                <div className="text-xs text-slate-400">阅读约 {r.readTime}</div>
+                                                                <div className="flex gap-2">
+                                                                    <button onClick={(e) => { e.stopPropagation(); setSelected(r); }} className="px-3 py-1 rounded bg-sky-600 text-white text-sm hover:bg-sky-700">查看</button>
+                                                                    <button onClick={(e) => e.stopPropagation()} className="px-3 py-1 rounded border text-sm hover:bg-slate-50">⋯</button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </article>
+                                                ))}
+                                            </div>
+                                        )}
+                                </div>
+                            )}
+                        </section>
+                    </main>
+
+                    {/* Slide-over detail */}
+                    {selected && (
+                        <div className="fixed inset-0 z-50 flex" style={{backgroundColor: 'rgba(0,0,0,0.5)'}}>
+                            <div className="flex-1" onClick={() => setSelected(null)} />
+                            <div className="w-[720px] bg-white p-6 shadow-2xl overflow-auto">
+                                <div className="flex items-start justify-between">
+                                    <div>
+                                        <h2 className="text-2xl font-semibold">{selected.title}</h2>
+                                        <div className="text-sm text-slate-500 mt-1">{selected.journal} • {selected.date} • {selected.level}</div>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <button onClick={() => { alert('收藏功能开发中'); }} className="px-3 py-1 rounded bg-amber-50 text-amber-700 hover:bg-amber-100">收藏</button>
+                                        <button onClick={() => setSelected(null)} className="px-3 py-1 rounded bg-slate-100 hover:bg-slate-200">关闭</button>
+                                    </div>
+                                </div>
+
+                                <div className="mt-6 grid grid-cols-2 gap-6">
+                                    <div>
+                                        <h3 className="font-medium mb-2">核心摘要</h3>
+                                        <p className="text-slate-700">{selected.summary}</p>
+
+                                        <div className="mt-4">
+                                            <h4 className="text-sm text-slate-500 mb-2">证据链</h4>
+                                            <ul className="space-y-2 text-sm">
+                                                <li className="p-3 bg-slate-50 rounded">来源：{selected.journal} • DOI: <span className="text-sky-600">{selected.doi}</span></li>
+                                                <li className="p-3 bg-slate-50 rounded">证据等级：{selected.level}</li>
+                                                <li className="p-3 bg-green-50 rounded text-green-700">AutoBots验证：已通过安全性检查</li>
+                                                <li className="p-3 bg-blue-50 rounded text-blue-700">建议：结合临床情况个体化决策</li>
+                                            </ul>
+                                        </div>
+
+                                        <div className="mt-4">
+                                            <button onClick={() => alert('患者材料生成功能开发中')} className="px-4 py-2 rounded bg-sky-600 text-white hover:bg-sky-700">生成患者说明</button>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <h3 className="font-medium mb-2">数据可视化</h3>
+                                        {selected.imageUrl ? (
+                                            <div className="h-44 border rounded overflow-hidden">
+                                                <img 
+                                                    src={selected.imageUrl} 
+                                                    alt="数据可视化图表" 
+                                                    className="w-full h-full object-contain bg-white"
+                                                    onError={(e) => {
+                                                        e.target.style.display = 'none';
+                                                        e.target.nextSibling.style.display = 'flex';
+                                                    }}
+                                                />
+                                                <div className="h-44 bg-slate-100 rounded flex items-center justify-center text-slate-500" style={{display: 'none'}}>
+                                                    图片加载失败
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="h-44 bg-slate-100 rounded flex items-center justify-center text-slate-500">
+                                                暂无可视化图片
+                                            </div>
+                                        )}
+
+                                        <div className="mt-4">
+                                            <h4 className="text-sm text-slate-500 mb-2">相关操作</h4>
+                                            <div className="flex flex-col gap-2">
+                                                <button onClick={() => alert('复制引用功能开发中')} className="px-3 py-2 rounded bg-sky-50 text-sky-700 hover:bg-sky-100">复制引用</button>
+                                                <button onClick={() => alert('分享功能开发中')} className="px-3 py-2 rounded bg-sky-50 text-sky-700 hover:bg-sky-100">分享到病例讨论</button>
+                                                <button onClick={() => alert('导出功能开发中')} className="px-3 py-2 rounded bg-sky-50 text-sky-700 hover:bg-sky-100">导出PDF</button>
+                                                <button onClick={() => alert('反馈功能开发中')} className="px-3 py-2 rounded bg-red-50 text-red-700 hover:bg-red-100">报告问题</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                                    <div className="text-sm text-blue-700">
+                                        <strong>AutoBots智能分析：</strong> 该证据已通过多维度安全校验，包括药物相互作用检查、剂量合理性评估和跨专科协作建议。建议结合患者具体情况进行个体化决策。
+                                    </div>
+                                </div>
+
+                                <div className="mt-4 text-sm text-slate-500">注：该原型集成京东AutoBots智能体能力，提供AI驱动的医疗循证决策支持。</div>
+                            </div>
+                        </div>
+                    )}
+
+                    <footer className="max-w-6xl mx-auto mt-8 text-xs text-slate-400 text-center">
+                        © 京东医疗循证平台 医疗循证平台 · 基于京东AI智能技术 · 场景化AI决策支持
+                    </footer>
+                </div>
+            );
+        }
+
+        // Render the app
+        ReactDOM.render(<JingDongMedicalApp />, document.getElementById('root'));
+    </script>
+</body>
+</html>
