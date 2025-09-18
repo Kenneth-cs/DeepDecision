@@ -8,7 +8,8 @@
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://unpkg.com/framer-motion@10/dist/framer-motion.js"></script>
-    <script src="https://unpkg.com/recharts@2.8.0/umd/Recharts.js"></script>
+    <script src="https://unpkg.com/prop-types@15.8.1/prop-types.min.js"></script>
+    <script src="https://unpkg.com/recharts@2.5.0/umd/Recharts.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .bg-surface-50 {
@@ -43,6 +44,9 @@
 <body>
     <div id="root"></div>
 
+    <!-- 引入API配置 -->
+    <script src="./api-prompt-config.js"></script>
+    
     <script type="text/babel">
         const { useState, useEffect } = React;
         const { motion } = window.Motion || { motion: { div: 'div', article: 'article' } };
@@ -254,6 +258,59 @@
                 return () => clearTimeout(t);
             }, []);
 
+            // 火山引擎API调用函数 - 使用优化后的配置
+            async function callVolcanoAPI(userQuestion) {
+                try {
+                    // 检查API配置是否可用
+                    if (typeof API_CONFIG === 'undefined') {
+                        console.error('API配置未加载');
+                        return '⚠️ 系统配置加载中，请稍后重试。';
+                    }
+                    
+                    // 检查API密钥是否已配置
+                    if (!API_CONFIG.isConfigValid()) {
+                        console.error('API密钥未配置');
+                        return '⚠️ **API密钥未配置**\n\n基于医学知识库的专业建议：请联系系统管理员配置有效的API密钥。';
+                    }
+                    
+                    const response = await fetch(API_CONFIG.endpoint, {
+                        method: 'POST',
+                        headers: API_CONFIG.headers,
+                        body: JSON.stringify(API_CONFIG.getRequestBody(userQuestion)),
+                        mode: 'cors',
+                        credentials: 'omit'
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`API请求失败: ${response.status} ${response.statusText}`);
+                    }
+                    
+                    const data = await response.json();
+                    
+                    if (data.choices && data.choices[0] && data.choices[0].message) {
+                        return data.choices[0].message.content;
+                    } else {
+                        throw new Error('API返回数据格式异常');
+                    }
+                } catch (error) {
+                    console.error('API调用错误:', error);
+                    
+                    // 根据错误类型返回不同的提示信息
+                    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                        return '⚠️ **网络连接失败**\n\n基于医学知识库的专业建议：\n1. 请检查网络连接是否正常\n2. 确认防火墙或代理设置\n3. 如问题持续，请联系技术支持\n\n**临时建议**：可参考权威医学指南获取相关信息。';
+                    } else if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+                        return '⚠️ **API密钥验证失败**\n\n基于医学知识库的专业建议：请联系系统管理员更新API密钥配置。';
+                    } else if (error.message.includes('429')) {
+                        return '⚠️ **API调用频率超限**\n\n基于医学知识库的专业建议：建议间隔30秒后重新提交查询。';
+                    } else if (error.message.includes('CORS')) {
+                        return '⚠️ **跨域请求被阻止**\n\n基于医学知识库的专业建议：请联系技术支持配置CORS策略。';
+                    } else {
+                        return `⚠️ **系统暂时无法处理您的请求**\n\n**基于医学知识库的专业建议**：\n针对您的医学问题，建议：\n1. 咨询相关专科医生获取个性化建议\n2. 参考权威医学指南和文献\n3. 结合患者具体情况制定治疗方案\n\n**错误详情**：${error.message}\n如问题持续，请稍后重试或联系技术支持。`;
+                    }
+                }
+            }
+            
+            // 修改handleSearch函数
             function handleSearch(e) {
                 e.preventDefault();
                 setLoading(true);
@@ -262,12 +319,12 @@
                 
                 const q = query.trim();
                 
-                // 开始5秒检索动画
+                // 开始检索动画
                 const stages = [
                     { stage: 1, delay: 0 },     // 正在分析问题
-                    { stage: 2, delay: 1200 },  // 检索权威医学数据库
-                    { stage: 3, delay: 2800 },  // 引用最新相关内容回答
-                    { stage: 4, delay: 4200 }   // 问题分析完成
+                    { stage: 2, delay: 1200 },  // 调用AI分析
+                    { stage: 3, delay: 2800 },  // 生成专业建议
+                    { stage: 4, delay: 4200 }   // 分析完成
                 ];
                 
                 stages.forEach(({ stage, delay }) => {
@@ -276,15 +333,18 @@
                     }, delay);
                 });
                 
-                // 5秒后显示结果
-                setTimeout(() => {
+                // 调用火山引擎API
+                callVolcanoAPI(q).then(aiResponse => {
                     // 检查是否为固定问题
                     if (DEMO_RESPONSES[q]) {
                         const demoData = DEMO_RESPONSES[q];
                         setAiSummary(demoData.aiSummary);
                         setResults(demoData.results);
                     } else {
-                        // 原有的搜索逻辑
+                        // 使用API返回的结果
+                        setAiSummary(aiResponse);
+                        
+                        // 可以根据查询内容过滤现有的模拟数据
                         const qLower = q.toLowerCase();
                         const filtered = MOCK_DATA.filter((it) => {
                             if (filterLevel !== "All" && it.level !== filterLevel) return false;
@@ -296,11 +356,16 @@
                             );
                         });
                         setResults(filtered);
-                        setAiSummary("针对您的问题，智能体给出的专业解答将展示在此处。");
                     }
+                    
                     setLoading(false);
                     setSearchStage(0);
-                }, 5000);
+                }).catch(error => {
+                    console.error('搜索处理错误:', error);
+                    setAiSummary('抱歉，搜索过程中出现错误，请稍后重试。');
+                    setLoading(false);
+                    setSearchStage(0);
+                });
             }
 
             function handleQuickSearch(searchTerm) {
@@ -697,8 +762,43 @@
             );
         }
 
-        // Render the app
-        ReactDOM.render(<JingDongMedicalApp />, document.getElementById('root'));
+        // Render the app (React 18 compatible)
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<JingDongMedicalApp />);
     </script>
 </body>
 </html>
+
+// 更新搜索阶段显示
+const searchStages = [
+    "正在分析您的医疗问题...",
+    "调用AI智能分析引擎...",
+    "生成专业循证医学建议...",
+    "整理分析结果..."
+];
+
+// 在搜索加载界面中使用
+{loading && (
+    <div className="text-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500 mx-auto mb-4"></div>
+        <p className="text-slate-600">
+            {searchStage > 0 ? searchStages[searchStage - 1] : "正在处理您的请求..."}
+        </p>
+    </div>
+)}
+
+// 添加重试机制
+async function callVolcanoAPIWithRetry(query, maxRetries = 3) {
+    for (let i = 0; i < maxRetries; i++) {
+        try {
+            return await callVolcanoAPI(query);
+        } catch (error) {
+            console.warn(`API调用失败，第${i + 1}次重试:`, error);
+            if (i === maxRetries - 1) {
+                throw error;
+            }
+            // 等待后重试
+            await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+        }
+    }
+}

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API测试页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            white-space: pre-wrap;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+    </style>
+</head>
+<body>
+    <h1>火山引擎API测试</h1>
+    
+    <div class="test-section">
+        <h3>1. 配置检查</h3>
+        <button onclick="testConfig()">检查API配置</button>
+        <div id="config-result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>2. API连接测试</h3>
+        <button onclick="testConnection()">测试API连接</button>
+        <div id="connection-result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>3. 简单查询测试</h3>
+        <input type="text" id="test-query" placeholder="输入测试问题" value="什么是高血压？" style="width: 300px; padding: 5px;">
+        <button onclick="testQuery()">发送测试查询</button>
+        <div id="query-result" class="result"></div>
+    </div>
+
+    <script src="api-prompt-config.js"></script>
+    <script>
+        function displayResult(elementId, content, isError = false) {
+            const element = document.getElementById(elementId);
+            element.textContent = content;
+            element.className = `result ${isError ? 'error' : 'success'}`;
+        }
+
+        function testConfig() {
+            try {
+                const config = window.API_CONFIG;
+                if (!config) {
+                    displayResult('config-result', '错误: API_CONFIG未加载', true);
+                    return;
+                }
+                
+                const result = `配置信息:
+端点: ${config.endpoint}
+API密钥: ${config.headers.Authorization ? '已配置' : '未配置'}
+配置有效性: ${config.isConfigValid() ? '有效' : '无效'}`;
+                
+                displayResult('config-result', result, !config.isConfigValid());
+            } catch (error) {
+                displayResult('config-result', `配置检查失败: ${error.message}`, true);
+            }
+        }
+
+        async function testConnection() {
+            try {
+                const config = window.API_CONFIG;
+                if (!config || !config.isConfigValid()) {
+                    displayResult('connection-result', '错误: API配置无效', true);
+                    return;
+                }
+
+                displayResult('connection-result', '正在测试连接...');
+                
+                console.log('测试连接 - 端点:', config.endpoint);
+                console.log('测试连接 - 请求头:', config.headers);
+                
+                const requestBody = {
+                    "model": "deepseek-v3-1-250821",
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": "测试连接"
+                        }
+                    ],
+                    "max_tokens": 10
+                };
+                
+                console.log('测试连接 - 请求体:', requestBody);
+                
+                const response = await fetch(config.endpoint, {
+                    method: 'POST',
+                    headers: config.headers,
+                    mode: 'cors',
+                    credentials: 'omit',
+                    body: JSON.stringify(requestBody)
+                });
+
+                console.log('测试连接 - 响应状态:', response.status);
+                console.log('测试连接 - 响应头:', [...response.headers.entries()]);
+                
+                const responseText = await response.text();
+                console.log('测试连接 - 响应内容:', responseText);
+                
+                if (response.ok) {
+                    displayResult('connection-result', `连接成功!\n状态码: ${response.status}\n响应: ${responseText}`);
+                } else {
+                    displayResult('connection-result', `连接失败!\n状态码: ${response.status}\n错误: ${responseText}\n\n详细信息请查看浏览器控制台`, true);
+                }
+            } catch (error) {
+                console.error('连接测试异常:', error);
+                displayResult('connection-result', `连接测试失败: ${error.message}\n错误类型: ${error.name}\n\n详细信息请查看浏览器控制台`, true);
+            }
+        }
+
+        async function testQuery() {
+            try {
+                const query = document.getElementById('test-query').value;
+                if (!query.trim()) {
+                    displayResult('query-result', '请输入测试问题', true);
+                    return;
+                }
+
+                const config = window.API_CONFIG;
+                if (!config || !config.isConfigValid()) {
+                    displayResult('query-result', '错误: API配置无效', true);
+                    return;
+                }
+
+                displayResult('query-result', '正在发送查询...');
+                
+                const requestBody = config.getRequestBody(query);
+                console.log('请求体:', requestBody);
+                
+                const response = await fetch(config.endpoint, {
+                    method: 'POST',
+                    headers: config.headers,
+                    mode: 'cors',
+                    credentials: 'omit',
+                    body: JSON.stringify(requestBody)
+                });
+
+                const responseText = await response.text();
+                console.log('响应:', responseText);
+                
+                if (response.ok) {
+                    try {
+                        const data = JSON.parse(responseText);
+                        const content = data.choices?.[0]?.message?.content || '无响应内容';
+                        displayResult('query-result', `查询成功!\n回答: ${content}`);
+                    } catch (parseError) {
+                        displayResult('query-result', `查询成功但解析失败:\n原始响应: ${responseText}`, true);
+                    }
+                } else {
+                    displayResult('query-result', `查询失败!\n状态码: ${response.status}\n错误: ${responseText}`, true);
+                }
+            } catch (error) {
+                displayResult('query-result', `查询测试失败: ${error.message}\n错误类型: ${error.name}`, true);
+            }
+        }
+
+        // 页面加载时自动检查配置
+        window.onload = function() {
+            testConfig();
+        };
+    </script>
+</body>
+</html>
