@@ -768,37 +768,3 @@
     </script>
 </body>
 </html>
-
-// 更新搜索阶段显示
-const searchStages = [
-    "正在分析您的医疗问题...",
-    "调用AI智能分析引擎...",
-    "生成专业循证医学建议...",
-    "整理分析结果..."
-];
-
-// 在搜索加载界面中使用
-{loading && (
-    <div className="text-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500 mx-auto mb-4"></div>
-        <p className="text-slate-600">
-            {searchStage > 0 ? searchStages[searchStage - 1] : "正在处理您的请求..."}
-        </p>
-    </div>
-)}
-
-// 添加重试机制
-async function callVolcanoAPIWithRetry(query, maxRetries = 3) {
-    for (let i = 0; i < maxRetries; i++) {
-        try {
-            return await callVolcanoAPI(query);
-        } catch (error) {
-            console.warn(`API调用失败，第${i + 1}次重试:`, error);
-            if (i === maxRetries - 1) {
-                throw error;
-            }
-            // 等待后重试
-            await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
-        }
-    }
-}
